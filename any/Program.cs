@@ -14,8 +14,8 @@ builder.Services.AddDbContext<anyContext>(options =>
 );
 
 // Add services to the container.
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
+IConfigurationSection jwtSettings = builder.Configuration.GetSection("JwtSettings");
+byte[] key = Encoding.ASCII.GetBytes(s: jwtSettings["Secret"]);
 
 builder
     .Services.AddAuthentication(x =>

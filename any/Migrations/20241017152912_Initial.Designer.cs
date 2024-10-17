@@ -12,7 +12,7 @@ using any.Data;
 namespace any.Migrations
 {
     [DbContext(typeof(anyContext))]
-    [Migration("20241017150709_Initial")]
+    [Migration("20241017152912_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -136,12 +136,17 @@ namespace any.Migrations
             modelBuilder.Entity("any.Models.User", b =>
                 {
                     b.HasOne("any.Models.Role", "Role")
-                        .WithMany()
+                        .WithMany("Users")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("any.Models.Role", b =>
+                {
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }
