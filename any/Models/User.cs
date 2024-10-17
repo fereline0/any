@@ -11,5 +11,8 @@ namespace any.Models
         [Required]
         [JsonIgnore]
         public string Password { get; set; }
+
+        [Required]
+        public Role Role { get; set; }
     }
 }
