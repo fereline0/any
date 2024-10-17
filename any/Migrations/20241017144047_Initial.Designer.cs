@@ -12,7 +12,7 @@ using any.Data;
 namespace any.Migrations
 {
     [DbContext(typeof(anyContext))]
-    [Migration("20241017140142_Initial")]
+    [Migration("20241017144047_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -37,6 +37,10 @@ namespace any.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text");
 
