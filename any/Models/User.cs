@@ -5,14 +5,19 @@ namespace any.Models
 {
     public class User : BaseEntity
     {
+        public enum RoleType
+        {
+            User,
+            Admin,
+        }
+
         [Required]
         public string Name { get; set; }
 
         [Required]
-        [JsonIgnore]
         public string Password { get; set; }
 
         [Required]
-        public Role Role { get; set; }
+        public RoleType Role { get; set; }
     }
 }
