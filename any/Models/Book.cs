@@ -9,6 +9,7 @@ namespace any.Models
         public decimal Price { get; set; }
         public string Image { get; set; }
         public int AuthorId { get; set; }
-        public Author? Author { get; set; }
+        public int PublishingId { get; set; }
+        public int CategoryId { get; set; }
     }
 }

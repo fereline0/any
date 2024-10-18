@@ -33,14 +33,16 @@ namespace any.Controllers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:Secret"]);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, dbUser.Id.ToString()),
+                new Claim(ClaimTypes.Name, dbUser.Name),
+            };
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(
-                    [
-                        new(ClaimTypes.NameIdentifier, dbUser.Id.ToString()),
-                        new(ClaimTypes.Name, dbUser.Name),
-                    ]
-                ),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),

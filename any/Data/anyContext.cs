@@ -48,5 +48,10 @@ namespace any.Data
                 ((BaseEntity)entity.Entity).UpdatedAt = now;
             }
         }
+
+        public DbSet<any.Models.Category> Category { get; set; } = default!;
+        public DbSet<any.Models.Author> Author { get; set; } = default!;
+        public DbSet<any.Models.Publishing> Publishing { get; set; } = default!;
+        public DbSet<any.Models.Book> Book { get; set; } = default!;
     }
 }
