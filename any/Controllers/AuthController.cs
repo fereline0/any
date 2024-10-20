@@ -26,7 +26,7 @@ namespace any.Controllers
         public IActionResult Login([FromBody] User user)
         {
             var dbUser = _context.User.SingleOrDefault(u => u.Name == user.Name);
-            if (dbUser == null || dbUser.Password != user.Password) // Проверьте хэш пароля!
+            if (dbUser == null || dbUser.Password != user.Password)
             {
                 return Unauthorized();
             }
@@ -51,7 +51,18 @@ namespace any.Controllers
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return Ok(new { Token = tokenHandler.WriteToken(token) });
+            return Ok(
+                new
+                {
+                    dbUser.Id,
+                    dbUser.Name,
+                    dbUser.Password,
+                    dbUser.Role,
+                    dbUser.CreatedAt,
+                    dbUser.UpdatedAt,
+                    Token = tokenHandler.WriteToken(token),
+                }
+            );
         }
     }
 }

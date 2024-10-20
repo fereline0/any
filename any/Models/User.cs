@@ -14,13 +14,9 @@ namespace any.Models
             Admin,
         }
 
-        [Required]
         public string Name { get; set; }
-
-        [Required]
         public string Password { get; set; }
-
-        [Required]
+        public string? Image { get; set; }
         public RoleType Role { get; set; }
     }
 }
