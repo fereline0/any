@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using any.Data;
 using any.DTO;
 using any.Models;
-using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +16,10 @@ namespace any.Controllers
     public class UsersController : ControllerBase
     {
         private readonly anyContext _context;
-        private readonly IMapper _mapper;
 
-        public UsersController(anyContext context, IMapper mapper)
+        public UsersController(anyContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         // GET: api/Users
@@ -30,7 +27,20 @@ namespace any.Controllers
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUser()
         {
             var users = await _context.User.ToListAsync();
-            return _mapper.Map<List<UserDTO>>(users);
+
+            var userDtos = users
+                .Select(user => new UserDTO
+                {
+                    Id = user.Id,
+                    Login = user.Login,
+                    Name = user.Name,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt,
+                })
+                .ToList();
+
+            return Ok(userDtos);
         }
 
         // GET: api/Users/5
@@ -44,25 +54,30 @@ namespace any.Controllers
                 return NotFound();
             }
 
-            return _mapper.Map<UserDTO>(user);
+            UserDTO userDto =
+                new()
+                {
+                    Id = user.Id,
+                    Login = user.Login,
+                    Name = user.Name,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt,
+                };
+
+            return Ok(userDto);
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, UserDTO userDto)
+        public async Task<IActionResult> PutUser(int id, User user)
         {
-            if (id != userDto.Id)
+            if (id != user.Id)
             {
                 return BadRequest();
             }
 
-            var user = await _context.User.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _mapper.Map(userDto, user);
+            _context.Entry(user).State = EntityState.Modified;
 
             try
             {
@@ -85,13 +100,23 @@ namespace any.Controllers
 
         // POST: api/Users
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDto)
+        public async Task<ActionResult<UserDTO>> PostUser(User user)
         {
-            var user = _mapper.Map<User>(userDto);
             _context.User.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, _mapper.Map<UserDTO>(user));
+            UserDTO userDto =
+                new()
+                {
+                    Id = user.Id,
+                    Login = user.Login,
+                    Name = user.Name,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt,
+                };
+
+            return CreatedAtAction("GetUser", new { id = user.Id }, userDto);
         }
 
         // DELETE: api/Users/5

@@ -14,7 +14,8 @@ namespace any.Models
             Admin,
         }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
+        public string Login { get; set; }
         public string Password { get; set; }
         public string? Image { get; set; }
         public RoleType Role { get; set; }

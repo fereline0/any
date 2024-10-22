@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using any.Controllers;
 using any.Data;
-using any.Mappings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,8 +46,6 @@ builder.Services.AddCors(options =>
         }
     );
 });
-
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 

@@ -25,7 +25,7 @@ namespace any.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] User user)
         {
-            var dbUser = _context.User.SingleOrDefault(u => u.Name == user.Name);
+            var dbUser = _context.User.SingleOrDefault(u => u.Login == user.Login);
             if (dbUser == null || dbUser.Password != user.Password)
             {
                 return Unauthorized();
@@ -37,7 +37,7 @@ namespace any.Controllers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, dbUser.Id.ToString()),
-                new Claim(ClaimTypes.Name, dbUser.Name),
+                new Claim(ClaimTypes.Name, dbUser.Login),
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -51,18 +51,7 @@ namespace any.Controllers
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return Ok(
-                new
-                {
-                    dbUser.Id,
-                    dbUser.Name,
-                    dbUser.Password,
-                    dbUser.Role,
-                    dbUser.CreatedAt,
-                    dbUser.UpdatedAt,
-                    Token = tokenHandler.WriteToken(token),
-                }
-            );
+            return Ok(new { Token = tokenHandler.WriteToken(token) });
         }
     }
 }
