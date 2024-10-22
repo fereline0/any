@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace any.Models
 {
-    [Index(nameof(Name), IsUnique = true)]
+    [Index(nameof(Login), IsUnique = true)]
     public class User : BaseEntity
     {
         public enum RoleType
@@ -18,6 +18,6 @@ namespace any.Models
         public string Login { get; set; }
         public string Password { get; set; }
         public string? Image { get; set; }
-        public RoleType Role { get; set; }
+        public RoleType Role { get; set; } = RoleType.User;
     }
 }
