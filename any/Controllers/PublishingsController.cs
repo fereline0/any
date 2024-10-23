@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using any.Data;
+using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using any.Data;
-using any.Models;
 
 namespace any.Controllers
 {
@@ -23,9 +23,27 @@ namespace any.Controllers
 
         // GET: api/Publishings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing()
+        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing(
+            int page = 1,
+            int limit = 20,
+            int bookPage = 1,
+            int bookLimit = 20
+        )
         {
-            return await _context.Publishing.ToListAsync();
+            var skip = (page - 1) * limit;
+            var publishings = await _context
+                .Publishing.Skip(skip)
+                .Take(limit)
+                .Include(c => c.Books)
+                .ToListAsync();
+
+            foreach (var publish in publishings)
+            {
+                var bookSkip = (bookPage - 1) * bookLimit;
+                publish.Books = publish.Books.Skip(bookSkip).Take(bookLimit).ToList();
+            }
+
+            return publishings;
         }
 
         // GET: api/Publishings/5

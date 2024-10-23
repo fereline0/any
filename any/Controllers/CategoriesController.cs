@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using any.Data;
 using any.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace any.Controllers
 {
@@ -23,9 +24,27 @@ namespace any.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategory()
+        public async Task<ActionResult<IEnumerable<Category>>> GetCategory(
+            int page = 1,
+            int limit = 20,
+            int bookPage = 1,
+            int bookLimit = 20
+        )
         {
-            return await _context.Category.ToListAsync();
+            var skip = (page - 1) * limit;
+            var categories = await _context
+                .Category.Skip(skip)
+                .Take(limit)
+                .Include(c => c.Books)
+                .ToListAsync();
+
+            foreach (var category in categories)
+            {
+                var bookSkip = (bookPage - 1) * bookLimit;
+                category.Books = category.Books.Skip(bookSkip).Take(bookLimit).ToList();
+            }
+
+            return categories;
         }
 
         // GET: api/Categories/5

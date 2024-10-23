@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using any.Data;
 using any.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace any.Controllers
 {
@@ -23,9 +24,11 @@ namespace any.Controllers
 
         // GET: api/Books
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBook()
+        public async Task<ActionResult<IEnumerable<Book>>> GetBook(int page = 1, int limit = 20)
         {
-            return await _context.Book.ToListAsync();
+            var skip = (page - 1) * limit;
+
+            return await _context.Book.Skip(skip).Take(limit).ToListAsync();
         }
 
         // GET: api/Books/5
