@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
+using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,34 +25,41 @@ namespace any.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategory(
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories(
             int page = 1,
-            int limit = 20,
-            int bookPage = 1,
-            int bookLimit = 20
+            int limit = 20
         )
         {
             var skip = (page - 1) * limit;
             var categories = await _context
                 .Category.Skip(skip)
                 .Take(limit)
-                .Include(c => c.Books)
+                .Select(category => new CategoryDto
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                    CreatedAt = category.CreatedAt,
+                    UpdatedAt = category.UpdatedAt,
+                })
                 .ToListAsync();
-
-            foreach (var category in categories)
-            {
-                var bookSkip = (bookPage - 1) * bookLimit;
-                category.Books = category.Books.Skip(bookSkip).Take(bookLimit).ToList();
-            }
 
             return categories;
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<CategoryDto>> GetCategory(int id)
         {
-            var category = await _context.Category.FindAsync(id);
+            var category = await _context
+                .Category.Where(c => c.Id == id)
+                .Select(category => new CategoryDto
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                    CreatedAt = category.CreatedAt,
+                    UpdatedAt = category.UpdatedAt,
+                })
+                .FirstOrDefaultAsync();
 
             if (category == null)
             {
@@ -59,6 +67,30 @@ namespace any.Controllers
             }
 
             return category;
+        }
+
+        // GET: api/Categories/5/Books
+        [HttpGet("{id}/Books")]
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooksByCategory(
+            int id,
+            int page = 1,
+            int limit = 20
+        )
+        {
+            var category = await _context.Category.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound("Category not found");
+            }
+
+            var skip = (page - 1) * limit;
+            var books = await _context
+                .Book.Where(book => book.CategoryId == id)
+                .Skip(skip)
+                .Take(limit)
+                .ToListAsync();
+
+            return books;
         }
 
         // PUT: api/Categories/5

@@ -23,7 +23,7 @@ namespace any.Controllers
 
         // GET: api/Publishings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing(
+        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishings(
             int page = 1,
             int limit = 20,
             int bookPage = 1,
@@ -48,14 +48,23 @@ namespace any.Controllers
 
         // GET: api/Publishings/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Publishing>> GetPublishing(int id)
+        public async Task<ActionResult<Publishing>> GetPublishing(
+            int id,
+            int page = 1,
+            int limit = 20
+        )
         {
-            var publishing = await _context.Publishing.FindAsync(id);
+            var publishing = await _context
+                .Publishing.Include(p => p.Books)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (publishing == null)
             {
                 return NotFound();
             }
+
+            var skip = (page - 1) * limit;
+            publishing.Books = publishing.Books.Skip(skip).Take(limit).ToList();
 
             return publishing;
         }

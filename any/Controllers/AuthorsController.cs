@@ -23,7 +23,7 @@ namespace any.Controllers
 
         // GET: api/Authors
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Author>>> GetAuthor(
+        public async Task<ActionResult<IEnumerable<Author>>> GetAuthors(
             int page = 1,
             int limit = 20,
             int bookPage = 1,
@@ -48,14 +48,19 @@ namespace any.Controllers
 
         // GET: api/Authors/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Author>> GetAuthor(int id)
+        public async Task<ActionResult<Author>> GetAuthor(int id, int page = 1, int limit = 20)
         {
-            var author = await _context.Author.FindAsync(id);
+            var author = await _context
+                .Author.Include(a => a.Books)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
             if (author == null)
             {
                 return NotFound();
             }
+
+            var skip = (page - 1) * limit;
+            author.Books = author.Books.Skip(skip).Take(limit).ToList();
 
             return author;
         }
