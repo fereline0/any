@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
+using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,13 +24,14 @@ namespace any.Controllers
 
         // GET: api/Publishings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishings(
+        public async Task<ActionResult<PagedResultDTO<object>>> GetPublishings(
             int page = 1,
             int limit = 20,
             int bookPage = 1,
             int bookLimit = 20
         )
         {
+            var total = await _context.Publishing.CountAsync();
             var skip = (page - 1) * limit;
             var publishings = await _context
                 .Publishing.Skip(skip)
@@ -37,22 +39,32 @@ namespace any.Controllers
                 .Include(c => c.Books)
                 .ToListAsync();
 
-            foreach (var publish in publishings)
-            {
-                var bookSkip = (bookPage - 1) * bookLimit;
-                publish.Books = publish.Books.Skip(bookSkip).Take(bookLimit).ToList();
-            }
+            var publishingDTOs = publishings
+                .Select(publishing =>
+                {
+                    var totalBook = publishing.Books.Count;
+                    var bookSkip = (bookPage - 1) * bookLimit;
+                    var pagedBooks = publishing.Books.Skip(bookSkip).Take(bookLimit).ToList();
 
-            return publishings;
+                    return new
+                    {
+                        publishing.Id,
+                        publishing.Name,
+                        publishing.CreatedAt,
+                        publishing.UpdatedAt,
+                        Total = totalBook,
+                        Books = new PagedResultDTO<Book>(totalBook, pagedBooks),
+                    };
+                })
+                .ToList();
+
+            var result = new PagedResultDTO<object>(total, publishingDTOs);
+            return Ok(result);
         }
 
         // GET: api/Publishings/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Publishing>> GetPublishing(
-            int id,
-            int page = 1,
-            int limit = 20
-        )
+        public async Task<ActionResult<object>> GetPublishing(int id, int page = 1, int limit = 20)
         {
             var publishing = await _context
                 .Publishing.Include(p => p.Books)
@@ -63,10 +75,24 @@ namespace any.Controllers
                 return NotFound();
             }
 
+            var totalBook = publishing.Books.Count;
             var skip = (page - 1) * limit;
-            publishing.Books = publishing.Books.Skip(skip).Take(limit).ToList();
+            var pagedBooks = publishing.Books.Skip(skip).Take(limit).ToList();
 
-            return publishing;
+            var result = new
+            {
+                Publishing = new
+                {
+                    publishing.Id,
+                    publishing.Name,
+                    publishing.CreatedAt,
+                    publishing.UpdatedAt,
+                    Total = totalBook,
+                },
+                Books = new PagedResultDTO<Book>(totalBook, pagedBooks),
+            };
+
+            return Ok(result);
         }
 
         // PUT: api/Publishings/5

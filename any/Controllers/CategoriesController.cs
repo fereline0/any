@@ -25,16 +25,10 @@ namespace any.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories(
-            int page = 1,
-            int limit = 20
-        )
+        public async Task<ActionResult<CategoryDto>> GetCategories()
         {
-            var skip = (page - 1) * limit;
             var categories = await _context
-                .Category.Skip(skip)
-                .Take(limit)
-                .Select(category => new CategoryDto
+                .Category.Select(category => new CategoryDto
                 {
                     Id = category.Id,
                     Name = category.Name,
@@ -43,7 +37,7 @@ namespace any.Controllers
                 })
                 .ToListAsync();
 
-            return categories;
+            return Ok(categories);
         }
 
         // GET: api/Categories/5
@@ -71,7 +65,7 @@ namespace any.Controllers
 
         // GET: api/Categories/5/Books
         [HttpGet("{id}/Books")]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooksByCategory(
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByCategory(
             int id,
             int page = 1,
             int limit = 20
@@ -83,6 +77,8 @@ namespace any.Controllers
                 return NotFound("Category not found");
             }
 
+            var total = await _context.Book.Where(book => book.CategoryId == id).CountAsync();
+
             var skip = (page - 1) * limit;
             var books = await _context
                 .Book.Where(book => book.CategoryId == id)
@@ -90,7 +86,8 @@ namespace any.Controllers
                 .Take(limit)
                 .ToListAsync();
 
-            return books;
+            var result = new PagedResultDTO<Book>(total, books);
+            return Ok(result);
         }
 
         // PUT: api/Categories/5

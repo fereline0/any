@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
+using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +25,15 @@ namespace any.Controllers
 
         // GET: api/Books
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBook(int page = 1, int limit = 20)
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooks(int page = 1, int limit = 20)
         {
+            var total = await _context.Book.CountAsync();
             var skip = (page - 1) * limit;
 
-            return await _context.Book.Skip(skip).Take(limit).ToListAsync();
+            var books = await _context.Book.Skip(skip).Take(limit).ToListAsync();
+
+            var result = new PagedResultDTO<Book>(total, books);
+            return Ok(result);
         }
 
         // GET: api/Books/5
