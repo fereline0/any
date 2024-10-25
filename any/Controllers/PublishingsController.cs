@@ -39,7 +39,7 @@ namespace any.Controllers
                 .Include(c => c.Books)
                 .ToListAsync();
 
-            var publishingDTOs = publishings
+            var publishingDTO = publishings
                 .Select(publishing =>
                 {
                     var totalBook = publishing.Books.Count;
@@ -58,7 +58,7 @@ namespace any.Controllers
                 })
                 .ToList();
 
-            var result = new PagedResultDTO<object>(total, publishingDTOs);
+            var result = new PagedResultDTO<object>(total, publishingDTO);
             return Ok(result);
         }
 

@@ -24,11 +24,16 @@ namespace any.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUser()
+        public async Task<ActionResult<IEnumerable<PagedResultDTO<UserDTO>>>> GetUser(
+            int page = 1,
+            int limit = 20
+        )
         {
-            var users = await _context.User.ToListAsync();
+            var total = await _context.Author.CountAsync();
+            var skip = (page - 1) * limit;
+            var users = await _context.User.Skip(skip).Take(limit).ToListAsync();
 
-            var userDtos = users
+            var userDTO = users
                 .Select(user => new UserDTO
                 {
                     Id = user.Id,
@@ -40,7 +45,8 @@ namespace any.Controllers
                 })
                 .ToList();
 
-            return Ok(userDtos);
+            var result = new PagedResultDTO<object>(total, userDTO);
+            return Ok(result);
         }
 
         // GET: api/Users/5
