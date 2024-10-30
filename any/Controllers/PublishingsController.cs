@@ -81,14 +81,10 @@ namespace any.Controllers
 
             var result = new
             {
-                Publishing = new
-                {
-                    publishing.Id,
-                    publishing.Name,
-                    publishing.CreatedAt,
-                    publishing.UpdatedAt,
-                    Total = totalBook,
-                },
+                publishing.Id,
+                publishing.Name,
+                publishing.CreatedAt,
+                publishing.UpdatedAt,
                 Books = new PagedResultDTO<Book>(totalBook, pagedBooks),
             };
 
