@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
-using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 namespace any.Controllers
@@ -25,35 +23,16 @@ namespace any.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<CategoryDto>> GetCategories()
+        public async Task<ActionResult<IEnumerable<Category>>> GetCategory()
         {
-            var categories = await _context
-                .Category.Select(category => new CategoryDto
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    CreatedAt = category.CreatedAt,
-                    UpdatedAt = category.UpdatedAt,
-                })
-                .ToListAsync();
-
-            return Ok(categories);
+            return await _context.Category.ToListAsync();
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryDto>> GetCategory(int id)
+        public async Task<ActionResult<Category>> GetCategory(int id)
         {
-            var category = await _context
-                .Category.Where(c => c.Id == id)
-                .Select(category => new CategoryDto
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    CreatedAt = category.CreatedAt,
-                    UpdatedAt = category.UpdatedAt,
-                })
-                .FirstOrDefaultAsync();
+            var category = await _context.Category.FindAsync(id);
 
             if (category == null)
             {
@@ -65,11 +44,7 @@ namespace any.Controllers
 
         // GET: api/Categories/5/Books
         [HttpGet("{id}/Books")]
-        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByCategory(
-            int id,
-            int page = 1,
-            int limit = 20
-        )
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooksByCategory(int id)
         {
             var category = await _context.Category.FindAsync(id);
             if (category == null)
@@ -77,17 +52,9 @@ namespace any.Controllers
                 return NotFound("Category not found");
             }
 
-            var total = await _context.Book.Where(book => book.CategoryId == id).CountAsync();
+            var query = _context.Book.Where(book => book.Categories.Any(c => c.Id == id));
 
-            var skip = (page - 1) * limit;
-            var books = await _context
-                .Book.Where(book => book.CategoryId == id)
-                .Skip(skip)
-                .Take(limit)
-                .ToListAsync();
-
-            var result = new PagedResultDTO<Book>(total, books);
-            return Ok(result);
+            return await query.ToListAsync();
         }
 
         // PUT: api/Categories/5

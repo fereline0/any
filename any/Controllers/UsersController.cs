@@ -24,57 +24,50 @@ namespace any.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PagedResultDTO<UserDTO>>>> GetUser(
-            int page = 1,
-            int limit = 20
-        )
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
-            var total = await _context.Author.CountAsync();
-            var skip = (page - 1) * limit;
-            var users = await _context.User.Skip(skip).Take(limit).ToListAsync();
-
-            var userDTO = users
-                .Select(user => new UserDTO
+            var users = await _context
+                .User.Select(u => new UserDTO
                 {
-                    Id = user.Id,
-                    Login = user.Login,
-                    Name = user.Name,
-                    Role = user.Role.ToString(),
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt,
+                    Id = u.Id,
+                    Login = u.Login,
+                    Name = u.Name,
+                    Role = u.Role.ToString(),
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
                 })
-                .ToList();
+                .ToListAsync();
 
-            var result = new PagedResultDTO<object>(total, userDTO);
-            return Ok(result);
+            return users;
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
-            var user = await _context.User.FindAsync(id);
+            var user = await _context
+                .User.Where(u => u.Id == id)
+                .Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    Login = u.Login,
+                    Name = u.Name,
+                    Role = u.Role.ToString(),
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                })
+                .FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            UserDTO userDto =
-                new()
-                {
-                    Id = user.Id,
-                    Login = user.Login,
-                    Name = user.Name,
-                    Role = user.Role.ToString(),
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt,
-                };
-
-            return Ok(userDto);
+            return user;
         }
 
         // PUT: api/Users/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
@@ -105,24 +98,14 @@ namespace any.Controllers
         }
 
         // POST: api/Users
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> PostUser(User user)
+        public async Task<ActionResult<User>> PostUser(User user)
         {
             _context.User.Add(user);
             await _context.SaveChangesAsync();
 
-            UserDTO userDto =
-                new()
-                {
-                    Id = user.Id,
-                    Login = user.Login,
-                    Name = user.Name,
-                    Role = user.Role.ToString(),
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt,
-                };
-
-            return CreatedAtAction("GetUser", new { id = user.Id }, userDto);
+            return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
 
         // DELETE: api/Users/5
