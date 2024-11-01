@@ -24,7 +24,10 @@ namespace any.Controllers
 
         // GET: api/Publishings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing(int page, int limit)
+        public async Task<ActionResult<PagedResultDTO<Publishing>>> GetPublishing(
+            int page,
+            int limit
+        )
         {
             var total = await _context.Publishing.CountAsync();
             int skip = (page - 1) * limit;

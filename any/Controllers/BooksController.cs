@@ -24,7 +24,7 @@ namespace any.Controllers
 
         // GET: api/Books
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBook(int page, int limit)
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBook(int page, int limit)
         {
             var total = await _context.Book.CountAsync();
             int skip = (page - 1) * limit;

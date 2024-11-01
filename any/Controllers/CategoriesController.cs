@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
+using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +45,11 @@ namespace any.Controllers
 
         // GET: api/Categories/5/Books
         [HttpGet("{id}/Books")]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooksByCategory(int id)
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByCategory(
+            int id,
+            int page,
+            int limit
+        )
         {
             var category = await _context.Category.FindAsync(id);
             if (category == null)
@@ -52,9 +57,20 @@ namespace any.Controllers
                 return NotFound("Category not found");
             }
 
-            var query = _context.Book.Where(book => book.Categories.Any(c => c.Id == id));
+            var total = await _context
+                .Book.Where(book => book.Categories.Any(c => c.Id == id))
+                .CountAsync();
 
-            return await query.ToListAsync();
+            var skip = (page - 1) * limit;
+
+            var books = await _context
+                .Book.Where(book => book.Categories.Any(c => c.Id == id))
+                .Skip(skip)
+                .Take(limit)
+                .ToListAsync();
+
+            var result = new PagedResultDTO<Book>(total, books);
+            return Ok(result);
         }
 
         // PUT: api/Categories/5

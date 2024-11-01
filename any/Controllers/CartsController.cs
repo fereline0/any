@@ -7,61 +7,60 @@ using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace any.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthorsController : ControllerBase
+    public class CartsController : ControllerBase
     {
         private readonly anyContext _context;
 
-        public AuthorsController(anyContext context)
+        public CartsController(anyContext context)
         {
             _context = context;
         }
 
-        // GET: api/Authors
+        // GET: api/Carts
         [HttpGet]
-        public async Task<ActionResult<PagedResultDTO<Author>>> GetAuthor(int page, int limit)
+        public async Task<ActionResult<IEnumerable<Cart>>> GetCart(int page, int limit)
         {
             var total = await _context.Author.CountAsync();
             int skip = (page - 1) * limit;
 
-            var authors = await _context.Author.Take(limit).Skip(skip).ToListAsync();
+            var books = await _context.Cart.Take(total).Skip(skip).ToListAsync();
 
-            var res = new PagedResultDTO<Author>(total, authors);
+            var res = new PagedResultDTO<Cart>(total, books);
 
             return Ok(res);
         }
 
-        // GET: api/Authors/5
+        // GET: api/Carts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Author>> GetAuthor(int id)
+        public async Task<ActionResult<Cart>> GetCart(int id)
         {
-            var author = await _context.Author.FindAsync(id);
+            var cart = await _context.Cart.FindAsync(id);
 
-            if (author == null)
+            if (cart == null)
             {
                 return NotFound();
             }
 
-            return author;
+            return cart;
         }
 
-        // PUT: api/Authors/5
+        // PUT: api/Carts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAuthor(int id, Author author)
+        public async Task<IActionResult> PutCart(int id, Cart cart)
         {
-            if (id != author.Id)
+            if (id != cart.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(author).State = EntityState.Modified;
+            _context.Entry(cart).State = EntityState.Modified;
 
             try
             {
@@ -69,7 +68,7 @@ namespace any.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AuthorExists(id))
+                if (!CartExists(id))
                 {
                     return NotFound();
                 }
@@ -82,36 +81,36 @@ namespace any.Controllers
             return NoContent();
         }
 
-        // POST: api/Authors
+        // POST: api/Carts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Author>> PostAuthor(Author author)
+        public async Task<ActionResult<Cart>> PostCart(Cart cart)
         {
-            _context.Author.Add(author);
+            _context.Cart.Add(cart);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAuthor", new { id = author.Id }, author);
+            return CreatedAtAction("GetCart", new { id = cart.Id }, cart);
         }
 
-        // DELETE: api/Authors/5
+        // DELETE: api/Carts/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAuthor(int id)
+        public async Task<IActionResult> DeleteCart(int id)
         {
-            var author = await _context.Author.FindAsync(id);
-            if (author == null)
+            var cart = await _context.Cart.FindAsync(id);
+            if (cart == null)
             {
                 return NotFound();
             }
 
-            _context.Author.Remove(author);
+            _context.Cart.Remove(cart);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool AuthorExists(int id)
+        private bool CartExists(int id)
         {
-            return _context.Author.Any(e => e.Id == id);
+            return _context.Cart.Any(e => e.Id == id);
         }
     }
 }
