@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using any.Data;
+using any.DTO;
 using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace any.Controllers
@@ -23,9 +25,16 @@ namespace any.Controllers
 
         // GET: api/Authors
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Author>>> GetAuthor()
+        public async Task<ActionResult<IEnumerable<Author>>> GetAuthor(int page, int limit)
         {
-            return await _context.Author.ToListAsync();
+            var total = await _context.Author.CountAsync();
+            int skip = (page - 1) * limit;
+
+            var authors = await _context.Author.Take(limit).Skip(skip).ToListAsync();
+
+            var res = new PagedResultDTO<Author>(total, authors);
+
+            return Ok(res);
         }
 
         // GET: api/Authors/5

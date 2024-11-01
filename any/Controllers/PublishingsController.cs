@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using any.Data;
+using any.DTO;
+using any.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using any.Data;
-using any.Models;
 
 namespace any.Controllers
 {
@@ -23,9 +24,16 @@ namespace any.Controllers
 
         // GET: api/Publishings
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing()
+        public async Task<ActionResult<IEnumerable<Publishing>>> GetPublishing(int page, int limit)
         {
-            return await _context.Publishing.ToListAsync();
+            var total = await _context.Publishing.CountAsync();
+            int skip = (page - 1) * limit;
+
+            var publishing = await _context.Publishing.Take(limit).Skip(skip).ToListAsync();
+
+            var res = new PagedResultDTO<Publishing>(total, publishing);
+
+            return Ok(res);
         }
 
         // GET: api/Publishings/5

@@ -24,8 +24,11 @@ namespace any.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers(int page, int limit)
         {
+            var total = await _context.Author.CountAsync();
+            int skip = (page - 1) * limit;
+
             var users = await _context
                 .User.Select(u => new UserDTO
                 {
@@ -36,9 +39,13 @@ namespace any.Controllers
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt,
                 })
+                .Take(total)
+                .Skip(skip)
                 .ToListAsync();
 
-            return users;
+            var res = new PagedResultDTO<UserDTO>(total, users);
+
+            return Ok(res);
         }
 
         // GET: api/Users/5
