@@ -44,7 +44,7 @@ namespace any.Controllers
                     Id = user.Id,
                     Login = user.Login,
                     Name = user.Name,
-                    Role = user.Role.ToString(),
+                    Role = user.Role,
                     CreatedAt = user.CreatedAt,
                     UpdatedAt = user.UpdatedAt,
                 };

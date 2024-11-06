@@ -82,10 +82,28 @@ namespace any.Controllers
         }
 
         // POST: api/Books
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Book>> PostBook(Book book)
+        public async Task<ActionResult<Book>> PostBook(BookDTO bookDto)
         {
+            var existingCategories = await _context
+                .Category.Where(c => bookDto.CategoryIds.Contains(c.Id))
+                .ToListAsync();
+
+            if (existingCategories.Count != bookDto.CategoryIds.Count)
+            {
+                return BadRequest("Some categories do not exist.");
+            }
+
+            var book = new Book
+            {
+                Title = bookDto.Title,
+                Description = bookDto.Description,
+                Price = bookDto.Price,
+                Image = bookDto.Image,
+                AuthorId = bookDto.AuthorId,
+                Categories = existingCategories,
+            };
+
             _context.Book.Add(book);
             await _context.SaveChangesAsync();
 

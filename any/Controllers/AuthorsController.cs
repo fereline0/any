@@ -51,6 +51,34 @@ namespace any.Controllers
             return author;
         }
 
+        // GET: api/Authors/5/Books
+        [HttpGet("{id}/Books")]
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByAuthorId(
+            int id,
+            int page,
+            int limit
+        )
+        {
+            var author = await _context.Author.FindAsync(id);
+            if (author == null)
+            {
+                return NotFound();
+            }
+
+            var total = await _context.Book.Where(book => book.AuthorId == id).CountAsync();
+
+            var skip = (page - 1) * limit;
+
+            var books = await _context
+                .Book.Where(book => book.AuthorId == id)
+                .Skip(skip)
+                .Take(limit)
+                .ToListAsync();
+
+            var result = new PagedResultDTO<Book>(total, books);
+            return Ok(result);
+        }
+
         // PUT: api/Authors/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

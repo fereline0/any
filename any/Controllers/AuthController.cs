@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using any.Data;
 using any.Models;
@@ -25,8 +26,10 @@ namespace any.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] User user)
         {
+            var hashedPassword = ComputeMD5Hash(user.Password);
+
             var dbUser = _context.User.SingleOrDefault(u => u.Login == user.Login);
-            if (dbUser == null || dbUser.Password != user.Password)
+            if (dbUser == null || dbUser.Password != hashedPassword)
             {
                 return Unauthorized();
             }
@@ -51,6 +54,22 @@ namespace any.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return Ok(new { Token = tokenHandler.WriteToken(token) });
+        }
+
+        // Method to compute MD5 hash
+        private string ComputeMD5Hash(string input)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var inputBytes = Encoding.UTF8.GetBytes(input);
+                var hashBytes = md5.ComputeHash(inputBytes);
+                var sb = new StringBuilder();
+                foreach (var b in hashBytes)
+                {
+                    sb.Append(b.ToString("x2"));
+                }
+                return sb.ToString();
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ namespace any.Controllers
                     Id = u.Id,
                     Login = u.Login,
                     Name = u.Name,
-                    Role = u.Role.ToString(),
+                    Role = u.Role,
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt,
                 })
@@ -59,7 +59,7 @@ namespace any.Controllers
                     Id = u.Id,
                     Login = u.Login,
                     Name = u.Name,
-                    Role = u.Role.ToString(),
+                    Role = u.Role,
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt,
                 })
@@ -71,6 +71,42 @@ namespace any.Controllers
             }
 
             return user;
+        }
+
+        // GET: api/Users/{id}/Cart
+        [HttpGet("{id}/Cart")]
+        public async Task<ActionResult<PagedResultDTO<Cart>>> GetUserCart(
+            int id,
+            int page,
+            int limit
+        )
+        {
+            var cart = _context.Cart.Where(c => c.UserId == id);
+
+            var total = await cart.CountAsync();
+            var skip = (page - 1) * limit;
+
+            var cartItems = await cart.Skip(skip).Take(limit).ToListAsync();
+
+            var result = new PagedResultDTO<Cart>(total, cartItems);
+
+            return Ok(result);
+        }
+
+        // GET: api/Users/{userId}/Cart/isCreated?bookId={bookId}
+        [HttpGet("{userId}/Cart/isCreated")]
+        public async Task<ActionResult<Cart>> GetUserCartIsCreated(int userId, int bookId)
+        {
+            var cart = await _context
+                .Cart.Where(c => c.UserId == userId && c.BookId == bookId)
+                .FirstOrDefaultAsync();
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            return cart;
         }
 
         // PUT: api/Users/5

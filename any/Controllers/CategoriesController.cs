@@ -45,7 +45,7 @@ namespace any.Controllers
 
         // GET: api/Categories/5/Books
         [HttpGet("{id}/Books")]
-        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByCategory(
+        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByCategoryId(
             int id,
             int page,
             int limit
@@ -54,7 +54,7 @@ namespace any.Controllers
             var category = await _context.Category.FindAsync(id);
             if (category == null)
             {
-                return NotFound("Category not found");
+                return NotFound();
             }
 
             var total = await _context
