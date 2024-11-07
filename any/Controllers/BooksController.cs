@@ -24,23 +24,53 @@ namespace any.Controllers
 
         // GET: api/Books
         [HttpGet]
-        public async Task<ActionResult<PagedResultDTO<Book>>> GetBook(int page, int limit)
+        public async Task<ActionResult<PagedResultDTO<BookDTO>>> GetBook(int page, int limit)
         {
             var total = await _context.Book.CountAsync();
             int skip = (page - 1) * limit;
 
-            var books = await _context.Book.Take(limit).Skip(skip).ToListAsync();
+            var books = await _context
+                .Book.Include(b => b.Categories)
+                .Skip(skip)
+                .Take(limit)
+                .Select(b => new BookDTO
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Description = b.Description,
+                    Price = b.Price,
+                    Image = b.Image,
+                    AuthorId = b.AuthorId,
+                    CategoryIds = b.Categories.Select(c => c.Id).ToList(),
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt,
+                })
+                .ToListAsync();
 
-            var res = new PagedResultDTO<Book>(total, books);
-
+            var res = new PagedResultDTO<BookDTO>(total, books);
             return Ok(res);
         }
 
         // GET: api/Books/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBook(int id)
+        public async Task<ActionResult<BookDTO>> GetBook(int id)
         {
-            var book = await _context.Book.FindAsync(id);
+            var book = await _context
+                .Book.Include(b => b.Categories)
+                .Where(b => b.Id == id)
+                .Select(b => new BookDTO
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Description = b.Description,
+                    Price = b.Price,
+                    Image = b.Image,
+                    AuthorId = b.AuthorId,
+                    CategoryIds = b.Categories.Select(c => c.Id).ToList(),
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt,
+                })
+                .FirstOrDefaultAsync();
 
             if (book == null)
             {
@@ -51,16 +81,43 @@ namespace any.Controllers
         }
 
         // PUT: api/Books/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBook(int id, Book book)
+        public async Task<IActionResult> PutBook(int id, BookDTO bookDto)
         {
-            if (id != book.Id)
+            if (id != bookDto.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(book).State = EntityState.Modified;
+            var book = await _context
+                .Book.Include(b => b.Categories)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (book == null)
+            {
+                return NotFound();
+            }
+
+            var existingCategories = await _context
+                .Category.Where(c => bookDto.CategoryIds.Contains(c.Id))
+                .ToListAsync();
+
+            if (existingCategories.Count != bookDto.CategoryIds.Count)
+            {
+                return BadRequest("Some categories do not exist.");
+            }
+
+            book.Title = bookDto.Title;
+            book.Description = bookDto.Description;
+            book.Price = bookDto.Price;
+            book.Image = bookDto.Image;
+            book.AuthorId = bookDto.AuthorId;
+
+            book.Categories.Clear();
+            foreach (var category in existingCategories)
+            {
+                book.Categories.Add(category);
+            }
 
             try
             {

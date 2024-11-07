@@ -53,7 +53,7 @@ namespace any.Controllers
 
         // GET: api/Authors/5/Books
         [HttpGet("{id}/Books")]
-        public async Task<ActionResult<PagedResultDTO<Book>>> GetBooksByAuthorId(
+        public async Task<ActionResult<PagedResultDTO<BookDTO>>> GetBooksByAuthorId(
             int id,
             int page,
             int limit
@@ -70,12 +70,25 @@ namespace any.Controllers
             var skip = (page - 1) * limit;
 
             var books = await _context
-                .Book.Where(book => book.AuthorId == id)
+                .Book.Include(b => b.Categories)
+                .Where(book => book.AuthorId == id)
                 .Skip(skip)
                 .Take(limit)
+                .Select(b => new BookDTO
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Description = b.Description,
+                    Price = b.Price,
+                    Image = b.Image,
+                    AuthorId = b.AuthorId,
+                    CategoryIds = b.Categories.Select(c => c.Id).ToList(),
+                    CreatedAt = b.CreatedAt,
+                    UpdatedAt = b.UpdatedAt,
+                })
                 .ToListAsync();
 
-            var result = new PagedResultDTO<Book>(total, books);
+            var result = new PagedResultDTO<BookDTO>(total, books);
             return Ok(result);
         }
 
