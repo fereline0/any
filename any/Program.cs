@@ -15,7 +15,10 @@ builder.Services.AddDbContext<anyContext>(options =>
 );
 
 IConfigurationSection jwtSettings = builder.Configuration.GetSection("JwtSettings");
-byte[] key = Encoding.ASCII.GetBytes(s: jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT settings section 'JwtSettings' not found.");
+byte[] key = Encoding.ASCII.GetBytes(
+    s: jwtSettings["Secret"]
+        ?? throw new InvalidOperationException("JWT settings section 'JwtSettings' not found.")
+);
 
 builder
     .Services.AddAuthentication(x =>
