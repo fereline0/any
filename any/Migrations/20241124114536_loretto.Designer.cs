@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using any.Data;
@@ -11,9 +12,11 @@ using any.Data;
 namespace any.Migrations
 {
     [DbContext(typeof(anyContext))]
-    partial class anyContextModelSnapshot : ModelSnapshot
+    [Migration("20241124114536_loretto")]
+    partial class loretto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -77,9 +80,6 @@ namespace any.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("AuthorId1")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -103,8 +103,6 @@ namespace any.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.HasIndex("AuthorId1");
-
                     b.ToTable("Book");
                 });
 
@@ -125,6 +123,9 @@ namespace any.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("User Id")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -132,7 +133,7 @@ namespace any.Migrations
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("User Id");
 
                     b.ToTable("Cart");
                 });
@@ -216,30 +217,32 @@ namespace any.Migrations
 
             modelBuilder.Entity("any.Models.Book", b =>
                 {
-                    b.HasOne("any.Models.Author", null)
-                        .WithMany()
+                    b.HasOne("any.Models.Author", "Author")
+                        .WithMany("Books")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("any.Models.Author", null)
-                        .WithMany("Books")
-                        .HasForeignKey("AuthorId1");
+                    b.Navigation("Author");
                 });
 
             modelBuilder.Entity("any.Models.Cart", b =>
                 {
-                    b.HasOne("any.Models.Book", null)
+                    b.HasOne("any.Models.Book", "Book")
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("any.Models.User", null)
+                    b.HasOne("any.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("User Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("any.Models.Author", b =>

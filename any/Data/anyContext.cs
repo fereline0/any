@@ -53,5 +53,29 @@ namespace any.Data
         public DbSet<any.Models.Author> Author { get; set; } = default!;
         public DbSet<any.Models.Book> Book { get; set; } = default!;
         public DbSet<any.Models.Cart> Cart { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<Book>()
+                .HasOne<Author>()
+                .WithMany()
+                .HasForeignKey(b => b.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder
+                .Entity<Cart>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder
+                .Entity<Cart>()
+                .HasOne<Book>()
+                .WithMany()
+                .HasForeignKey(c => c.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
